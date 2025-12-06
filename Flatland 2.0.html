@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<title>FLATLAND 2.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang&family=Nanum+Myeongjo&display=swap" rel="stylesheet">
+<style>
+/* [수정 2] 아이패드 폰트 강제 적용 및 렌더링 보정 */
+html, body {
+  margin: 0; height: 100%; background-color: white; 
+  font-family: 'Gowun Batang', serif;
+  font-weight: 400; /* 중요: 300 아님 */
+  overflow: hidden;
+  cursor: default; touch-action: none;
+  -webkit-font-smoothing: antialiased;
+}
+/* 폼 요소에도 폰트 상속 강제 */
+button, input, label, span, textarea, select { 
+  cursor: default; 
+  font-family: 'Gowun Batang', serif !important;
+}
+#container {
+  position: relative; width: 100vw; height: 100vh; overflow: hidden;
+}
+/* ...이하 #canvas-wrapper, #mainCanvas 등의 기존 CSS는 그대로 유지... */
+#canvas-wrapper {
+  position: absolute; left: 0; top: 0;
+  width: 650px; height: 650px;
+  display: inline-block; will-change: transform;
+}
+#mainCanvas {
+  display: block; border: 0;
+  background: transparent; box-sizing: border-box;
+  cursor: text; width: 100%; height: 100%;
+}
+#overlayCanvas {
+  position: absolute; left:0; top:0; width: 100%; height: 100%;
+  z-index: 50; pointer-events: auto; cursor: move;
+}
+#hidden-input { 
+  position: absolute; left:-9999px; width:1px; height:1px; opacity:0;
+}
+#resetBtn {
+  display: none;
+  position: absolute; bottom:10%; left:50%; transform:translateX(-50%);
+  z-index: 100; width:100px; padding:8px 0;
+  border:1.5px solid #000; background:#fff0;
+  font-size:14px; color:#000; cursor:pointer;
+  font-family: 'Gowun Batang', serif; /* 버튼 폰트 추가 */
+}
+</style>
+</head>
+<body>
+<!-- [수정 3] iOS 폰트 다운로드 강제 트리거 (한글 포함) -->
+<div style="font-family: 'Gowun Batang', serif; position: absolute; top: -9999px; left: -9999px; pointer-events: none; opacity: 0;">
+  폰트로딩강제 Loading Font
+</div>
+
+<button id="resetBtn">초기화</button>
+
+<button id="resetBtn">초기화</button>
+<canvas id="overlayCanvas"></canvas>
+
+<div id="container">
+  <div id="canvas-wrapper">
+    <canvas id="mainCanvas"></canvas>
+  </div>
+</div>
+
+<textarea id="hidden-input" autofocus></textarea>
+
+<script>
+/**
+ * ==========================================
+ * 상수 및 설정
+ * ==========================================
+ */
+const INTERACTION = { 
+  CHUNK_THRESHOLD: 20,
+  RATIO_THRESHOLD: 20,
+  ACCEL_FACTOR: 0.05,
+  SIZE_STEP: 10,
+  WRAP_BUFFER: 50
+  
+};
+
+const INITIAL_SETTINGS = {
+  CHUNK: Math.floor(Math.random() * 100) + 1,           // [설정] 초기 청크 크기 (1 = 원본)
+  RATIO_SCALE: Math.random() * 2,    // [설정] 초기 확대/축소 비율 (1.0 = 100%, 0.5 = 50%, 2.0 = 200%)
+                      // targetWidth = INITIAL_SIZE / RATIO_SCALE 로 계산됩니다.
+
+  // [추가됨] 초기 위치 설정 (단위: px)
+  // null로 설정하면 기존처럼 '화면 정중앙'으로 자동 계산됩니다.
+  POS_X: Math.random() * (window.innerWidth * 0.8),         // 예: 왼쪽에서 100px
+  POS_Y: Math.random() * (window.innerHeight * 0.8),          // 예: 위쪽에서 200px
+
+  // [수정됨] 폰트명 간소화 (작은따옴표 문제 방지)
+  FONT_FAMILY: "'Gowun Batang', serif"
+};
+
+const INITIAL_CONTENT =
+"자, 이제 상상력을 조금만 더 발휘해서, 플랫랜드의 정사각형이 자기 자신과 평행하게 '위쪽으로' 움직인다고 생각해 보게.\n뭐라고요? 북쪽으로 말입니까?\n아니, 북쪽이 아닐세. '위쪽'이라니까. 플랫랜드 바깥으로 완전히 벗어나는 방향이지. 만약 사각형이 북쪽으로 움직인다면, 남쪽의 점들은 북쪽의 점들이 있던 자리를 통과해서 움직여야겠지. 하지만 내 말은 그런 게 아니야. 내 말은 자네 안의 모든 점이—자네는 정사각형이니 설명하기 좋군—자네 안의 모든 점, 즉 자네가 '내부'라고 부르는 곳의 모든 점이 공간을 뚫고 위쪽으로 지나간다는 뜻일세. 어떤 점도 다른 점이 있던 자리를 통과하지 않고, 각 점이 저마다의 직선을 그리면서 말이야. 이건 모두 유비에 딱 들어맞는 설명일세. 자네도 분명 이해할 거야.\n나는 끓어오르는 짜증을 억누르며—마음 같아서는 이 방문객에게 무작정 달려들어 그를 공간 밖으로든, 플랫랜드 밖으로든, 어디로든 밀어버려 없애버리고 싶었지만—이렇게 대답했다.\n그래서 당신이 '위쪽'이라는 단어로 지칭하는 그 움직임으로 제가 만들어낸다는 도형의 정체가 뭡니까? 우리 플랫랜드의 언어로 설명할 수 있겠지요?\n아, 물론이지. 아주 명백하고 단순해. 엄밀한 유비에 따른 것이니까. 단, 그 결과물을 '도형'이라고 부르면 안 되고 '입체'라고 불러야 해. 내가 설명해 주지. 아니, 내가 아니라 '유비'가 설명해 줄 걸세.\n우리는 하나의 점에서 시작했네. 점은 그 자체로 점이니 당연히 끝점이 하나뿐이지. 점 하나가 움직여서 끝점이 2개인 선을 만들었어. 선 하나는 끝점이 4개인 정사각형을 만들지. 자, 이제 자네 질문에 자네 스스로 답할 수 있을 거야. 1, 2, 4는 분명히 기하급수를 이루고 있네. 다음 숫자는 무엇인가?";
+
+const FONT_SIZE = 24;
+// [수정됨] 중요: 폰트 웨이트 300 -> 400 (고운바탕은 300이 없어 아이패드에서 깨짐)
+const FONT_STYLE = `400 ${FONT_SIZE}px ${INITIAL_SETTINGS.FONT_FAMILY}`;
+const INITIAL_SIZE = 650;
+const TEXT_PADDING_X = 0;
+const TEXT_PADDING_Y = 0;
+const LINE_HEIGHT = FONT_SIZE;
+const CURSOR_WIDTH = 14;
+
+// 오버레이 폰트 크기 기본값 60 36 18
+const HORIZONTAL_TEXT = "우리는북쪽,남쪽,동쪽,서쪽외에는그어떤방향으로도움직일수없습니다.";
+const VERTICAL_TEXT   = "이번엔왼쪽으로움직여봐.그건무슨방향이지?";
+const OVERLAY_FONT_SIZE = 36;
+// [수정됨] 300 -> 400
+const OVERLAY_FONT = `400 ${OVERLAY_FONT_SIZE}px ${INITIAL_SETTINGS.FONT_FAMILY}`;
+const OVERLAY_COLOR = "black";
+
+// 푸터
+const FOOTER_FONT_SIZE = 16;
+const FOOTER_FONT = `400 ${FOOTER_FONT_SIZE}px ${INITIAL_SETTINGS.FONT_FAMILY}`;
+const FOOTER_TEXT_COLOR = "black";
+const FOOTER_BG_COLOR = "white";
+const FOOTER_MARGIN = 10;
+
+/**
+ * ==========================================
+ * 상태 변수
+ * ==========================================
+ */
+let hTextY = 0, hTextOffset = 0;
+let vTextX = 0, vTextOffset = 0;
+let chunk = 1, targetWidth = INITIAL_SIZE;
+let dpr = window.devicePixelRatio || 1;
+let curW = INITIAL_SIZE, curH = INITIAL_SIZE;
+
+let canvasOffsetX = 0, canvasOffsetY = 0;
+let canvasDragStartOffsetX = 0, canvasDragStartOffsetY = 0;
+
+const mainCanvas = document.getElementById("mainCanvas");
+const mainCtx = mainCanvas.getContext("2d");
+const overlayCanvas = document.getElementById("overlayCanvas");
+const overlayCtx = overlayCanvas.getContext("2d");
+const hiddenInput = document.getElementById("hidden-input");
+const canvasWrapper = document.getElementById("canvas-wrapper");
+
+const textCanvas = document.createElement("canvas");
+const textCtx = textCanvas.getContext("2d", { willReadFrequently:true });
+const tempCanvas = document.createElement("canvas");
+const tempCtx = tempCanvas.getContext("2d");
+const hPatternCanvas = document.createElement("canvas");
+const hPatternCtx = hPatternCanvas.getContext("2d");
+const vPatternCanvas = document.createElement("canvas");
+const vPatternCtx = vPatternCanvas.getContext("2d");
+
+let activeDragTarget = null;
+let dragStartX = 0, dragStartY = 0, accumulatedDelta = 0;
+
+// 텍스트 관련
+let showCursor = true, cursorInterval = null;
+let renderedLines = [];   // 화면에 렌더링된 줄 정보
+let cachedTextValue = ""; 
+let originalData = null; 
+let isDirty = true, isOverlayDirty = true, isTextDirty = true;
+let showOverlayStrings = true; 
+
+/**
+ * ==========================================
+ * 초기화 로직
+ * ==========================================
+ */
+function setInitialPosition() {
+  const w = window.innerWidth, h = window.innerHeight;
+
+  // 1) X 좌표 결정: 사용자 설정값이 있으면 사용, 없으면(null) 화면 중앙
+  if (INITIAL_SETTINGS.POS_X !== null) {
+    canvasOffsetX = INITIAL_SETTINGS.POS_X;
+  } else {
+    canvasOffsetX = (w - INITIAL_SIZE) / 2;
+  }
+
+  // 2) Y 좌표 결정: 사용자 설정값이 있으면 사용, 없으면(null) 화면 중앙
+  if (INITIAL_SETTINGS.POS_Y !== null) {
+    canvasOffsetY = INITIAL_SETTINGS.POS_Y;
+  } else {
+    canvasOffsetY = (h - INITIAL_SIZE) / 2;
+  }
+
+  // 위치 적용
+  canvasWrapper.style.transform = `translate(${canvasOffsetX}px, ${canvasOffsetY}px)`;
+  
+  // 기존 초기화 로직 (청크, 비율)
+  chunk = INITIAL_SETTINGS.CHUNK;
+  targetWidth = INITIAL_SIZE / INITIAL_SETTINGS.RATIO_SCALE;
+}
+
+function initOverlay() {
+  resizeOverlay();
+  cacheOverlayPatterns();
+  window.addEventListener('resize', () => {
+    resizeOverlay(); resetOverlayPositions(); cacheOverlayPatterns();
+  });
+  resetOverlayPositions();
+}
+
+function cacheOverlayPatterns() {
+  dpr = window.devicePixelRatio || 1;
+  hPatternCtx.setTransform(1,0,0,1,0,0); hPatternCtx.font = OVERLAY_FONT;
+  const hW = Math.ceil(hPatternCtx.measureText(HORIZONTAL_TEXT).width)+2;
+  const hH = Math.ceil(OVERLAY_FONT_SIZE*1.5);
+  hPatternCanvas.width=hW*dpr; hPatternCanvas.height=hH*dpr;
+  hPatternCtx.setTransform(1,0,0,1,0,0); hPatternCtx.scale(dpr,dpr);
+  hPatternCtx.font=OVERLAY_FONT; hPatternCtx.fillStyle=OVERLAY_COLOR;
+  hPatternCtx.textBaseline="middle"; hPatternCtx.clearRect(0,0,hW,hH);
+  hPatternCtx.fillText(HORIZONTAL_TEXT,0,hH/2);
+
+  vPatternCtx.setTransform(1,0,0,1,0,0); vPatternCtx.font=OVERLAY_FONT;
+  const vW = Math.ceil(vPatternCtx.measureText(VERTICAL_TEXT).width)+2;
+  const vH = Math.ceil(OVERLAY_FONT_SIZE*1.5);
+  vPatternCanvas.width=vW*dpr; vPatternCanvas.height=vH*dpr;
+  vPatternCtx.setTransform(1,0,0,1,0,0); vPatternCtx.scale(dpr,dpr);
+  vPatternCtx.font=OVERLAY_FONT; vPatternCtx.fillStyle=OVERLAY_COLOR;
+  vPatternCtx.textBaseline="middle"; vPatternCtx.clearRect(0,0,vW,vH);
+  vPatternCtx.fillText(VERTICAL_TEXT,0,vH/2);
+}
+
+function resetOverlayPositions() {
+  const w = window.innerWidth, h = window.innerHeight;
+  hTextY = h * 0.1 + Math.random() * (h * 0.9);
+  vTextX = w * 0.1 + Math.random() * (w * 0.9);
+  hTextOffset = 0; vTextOffset = 0; isOverlayDirty = true;
+}
+
+function resizeOverlay() {
+  dpr = window.devicePixelRatio || 1;
+  const w = window.innerWidth, h = window.innerHeight;
+  overlayCanvas.width=w*dpr; overlayCanvas.height=h*dpr;
+  overlayCanvas.style.width=`${w}px`; overlayCanvas.style.height=`${h}px`;
+  overlayCtx.setTransform(1,0,0,1,0,0); overlayCtx.scale(dpr,dpr);
+  isOverlayDirty = true;
+}
+
+function renderOverlay() {
+  const w = window.innerWidth, h = window.innerHeight, buffer = INTERACTION.WRAP_BUFFER;
+  overlayCtx.clearRect(0, 0, w, h);
+
+// [수정됨] 토글 상태에 따라 문자열 그리기
+  if (showOverlayStrings) {
+    // 1. 가로문자열
+    const hW = hPatternCanvas.width / dpr, hH = hPatternCanvas.height / dpr;
+    if (hTextY < -buffer) hTextY = h + buffer; else if (hTextY > h + buffer) hTextY = -buffer;
+    let drawHX = hTextOffset % hW; if (drawHX > 0) drawHX -= hW;
+    const drawHY = hTextY - hH / 2;
+    for (let x = drawHX; x < w + buffer; x += hW) overlayCtx.drawImage(hPatternCanvas, x, drawHY, hW, hH);
+
+    // 2. 세로문자열
+    const vW = vPatternCanvas.width / dpr, vH = vPatternCanvas.height / dpr;
+    if (vTextX < -buffer) vTextX = w + buffer; else if (vTextX > w + buffer) vTextX = -buffer;
+    let drawVY = vTextOffset % vW; if (drawVY > 0) drawVY -= vW;
+    overlayCtx.save(); overlayCtx.translate(vTextX, 0); overlayCtx.rotate(-Math.PI / 2);
+    let startX = drawVY; if (startX < buffer) startX += vW;
+    const drawVX_Offset = -vH / 2;
+    let lc = 0; while (startX > -h - buffer - vW && lc++ < 100) {
+      overlayCtx.drawImage(vPatternCanvas, startX, drawVX_Offset, vW, vH);
+      startX -= vW;
+    }
+    overlayCtx.restore();
+  }
+
+  // =================================================================
+  // [추가] 상단 헤더 (좌상: Chunk / 우상: Ratio) - 푸터 스타일 재사용
+  // =================================================================
+  overlayCtx.save();
+  overlayCtx.font = FOOTER_FONT;
+  
+  // 3-1. 텍스트 내용 준비
+  const chunkText = `${chunk}`;
+  const ratioVal = (INITIAL_SIZE / targetWidth).toFixed(2); // 예: 1.00, 0.85
+  const ratioText = `${ratioVal}`;
+
+  // 3-2. 측정
+  const cm = overlayCtx.measureText(chunkText);
+  const rm = overlayCtx.measureText(ratioText);
+  const th = FOOTER_FONT_SIZE * 1.4; // 텍스트 박스 높이
+
+  // 3-3. 그리기 (TextBaseline = top)
+  overlayCtx.textBaseline = "top";
+
+  // 배경 박스
+  overlayCtx.fillStyle = FOOTER_BG_COLOR;
+  // 좌상
+  overlayCtx.fillRect(FOOTER_MARGIN, FOOTER_MARGIN, cm.width, th);
+  // 우상
+  overlayCtx.fillRect(w - FOOTER_MARGIN - rm.width, FOOTER_MARGIN, rm.width, th);
+
+  // 텍스트
+  overlayCtx.fillStyle = FOOTER_TEXT_COLOR;
+  // 좌상
+  overlayCtx.fillText(chunkText, FOOTER_MARGIN, FOOTER_MARGIN);
+  // 우상
+  overlayCtx.fillText(ratioText, w - FOOTER_MARGIN - rm.width, FOOTER_MARGIN);
+
+  overlayCtx.restore();
+  // =================================================================
+
+  // 4. 푸터 (좌하: 최정욱 / 중앙: FLATLAND, 1884 / 우하: 날짜)
+  overlayCtx.save();
+  overlayCtx.font = FOOTER_FONT;
+  overlayCtx.textBaseline = "bottom";
+  
+  const lText = "최정욱";
+  const cText = "FLATLAND, 1884";
+  const rText = "2025/12/1";
+  
+  const lM = overlayCtx.measureText(lText);
+  const cM = overlayCtx.measureText(cText);
+  const rM = overlayCtx.measureText(rText);
+  
+  const footerTH = FOOTER_FONT_SIZE * 1.4;
+  
+  // 배경 박스
+  overlayCtx.fillStyle = FOOTER_BG_COLOR;
+  const boxY = Math.floor(h - FOOTER_MARGIN - th);
+  overlayCtx.fillRect(FOOTER_MARGIN, boxY, lM.width, th);
+  
+  const cBoxX = Math.floor((w - cM.width) / 2);
+  overlayCtx.fillRect(cBoxX, boxY, cM.width, th); // 중앙 배경
+  overlayCtx.fillRect(w - FOOTER_MARGIN - rM.width, boxY, rM.width, th);
+
+  // 텍스트
+  overlayCtx.fillStyle = FOOTER_TEXT_COLOR;
+  overlayCtx.textAlign = "left";
+  overlayCtx.fillText(lText, FOOTER_MARGIN, h - FOOTER_MARGIN);
+  
+  overlayCtx.textAlign = "center";
+  overlayCtx.fillText(cText, Math.floor(w / 2), h - FOOTER_MARGIN);
+  
+  overlayCtx.textAlign = "right";
+  overlayCtx.fillText(rText, w - FOOTER_MARGIN, h - FOOTER_MARGIN);
+  
+  overlayCtx.restore();
+}
+
+
+function getHitRegion(x,y){
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  const th = FOOTER_FONT_SIZE * 1.4;
+  const footerY = h - FOOTER_MARGIN - th;
+  
+  // [추가됨] 헤더 영역 감지 (FOOTER_MARGIN 등을 고려하여 대략적 영역 설정)
+  // 좌상단 (Chunk Reset)
+  if (x >= 0 && x <= 150 && y >= 0 && y <= 50) return 'header-left';
+  // 우상단 (Ratio Reset)
+  if (x >= w - 150 && x <= w && y >= 0 && y <= 50) return 'header-right';
+  
+  // [추가됨] 중앙 푸터 (토글 버튼) 감지
+  // 중앙 텍스트 너비를 대략 200px로 가정하고 넉넉히 잡음
+  const centerStart = (w / 2) - 100;
+  const centerEnd = (w / 2) + 100;
+  if (x >= centerStart && x <= centerEnd && y >= footerY) {
+    return 'footer-center';
+  }
+
+  // [우선순위 2] 가로/세로 드래그 (문자열이 켜져있을 때만)
+  if (showOverlayStrings) {
+    if (y >= hTextY - (OVERLAY_FONT_SIZE/2) - 5 && y <= hTextY + (OVERLAY_FONT_SIZE/2) + 5) return 'horizontal';
+    if (x >= vTextX - (OVERLAY_FONT_SIZE/2) - 5 && x <= vTextX + (OVERLAY_FONT_SIZE/2) + 5) return 'vertical';
+  }
+
+  return null;
+}
+
+/**
+ * ==========================================
+ * 텍스트 렌더링 & 커서 로직
+ * ==========================================
+ */
+function calculateWrappedLines(text) {
+  textCtx.font = FONT_STYLE;
+  const paragraphs = text.split('\n');
+  const lines = [];
+  let currentIndex = 0;
+  
+  for (let p = 0; p < paragraphs.length; p++) {
+    const paragraph = paragraphs[p];
+    if (paragraph === '') {
+      lines.push({ text: '', startIndex: currentIndex, isHardBreak: true });
+      currentIndex++;
+      continue;
+    }
+    let line = '', lineStart = currentIndex;
+    for (let j = 0; j < paragraph.length; j++) {
+      const char = paragraph[j];
+      const test = line + char;
+      if (textCtx.measureText(test).width > INITIAL_SIZE && j > 0) {
+        lines.push({ text: line, startIndex: lineStart, isHardBreak: false });
+        line = char;
+        lineStart = currentIndex + j;
+      } else {
+        line = test;
+      }
+    }
+    lines.push({ text: line, startIndex: lineStart, isHardBreak: true });
+    currentIndex += paragraph.length + 1;
+  }
+  return lines;
+}
+
+function drawTextToCanvas() {
+  dpr = window.devicePixelRatio || 1;
+  if (textCanvas.width !== INITIAL_SIZE * dpr) {
+    textCanvas.width=INITIAL_SIZE*dpr; textCanvas.height=INITIAL_SIZE*dpr;
+    textCtx.setTransform(1,0,0,1,0,0); textCtx.scale(dpr,dpr);
+  }
+
+  const val = hiddenInput.value;
+  if (val !== cachedTextValue || renderedLines.length === 0) {
+    renderedLines = calculateWrappedLines(val);
+    cachedTextValue = val;
+  }
+  
+  const selStart = hiddenInput.selectionStart;
+  const selEnd = hiddenInput.selectionEnd;
+  const hasSelection = selStart !== selEnd;
+
+  textCtx.fillStyle = 'white'; textCtx.fillRect(0,0,INITIAL_SIZE,INITIAL_SIZE);
+  textCtx.font = FONT_STYLE; textCtx.textBaseline = 'top';
+  
+  // 텍스트 배경(검정)
+  textCtx.fillStyle = 'black';
+  for (let i = 0; i < renderedLines.length; i++) {
+    const t = renderedLines[i].text;
+    if (t) textCtx.fillRect(TEXT_PADDING_X, TEXT_PADDING_Y + i*LINE_HEIGHT, textCtx.measureText(t).width, LINE_HEIGHT);
+  }
+  // 텍스트(흰색)
+  textCtx.fillStyle = 'white';
+  for (let i = 0; i < renderedLines.length; i++) {
+    textCtx.fillText(renderedLines[i].text, TEXT_PADDING_X, TEXT_PADDING_Y + i*LINE_HEIGHT);
+  }
+
+  if (hasSelection) {
+    textCtx.globalCompositeOperation = 'difference';
+    // textCtx.fillStyle = 'white';
+    textCtx.fillStyle = '#ff0';
+    for (let i = 0; i < renderedLines.length; i++) {
+      const line = renderedLines[i];
+      const s = line.startIndex, e = s + line.text.length;
+      const is = Math.max(s, selStart), ie = Math.min(e, selEnd);
+      if (is < ie) {
+        const before = line.text.substring(0, is - s);
+        const sel = line.text.substring(is - s, ie - s);
+        const bx = TEXT_PADDING_X + textCtx.measureText(before).width;
+        const bw = textCtx.measureText(sel).width;
+        textCtx.fillRect(bx, TEXT_PADDING_Y + i*LINE_HEIGHT, bw, LINE_HEIGHT);
+      }
+    }
+    textCtx.globalCompositeOperation = 'source-over';
+  }
+
+  if (!hasSelection && showCursor) {
+    // 커서 위치 찾기
+    for (let i = 0; i < renderedLines.length; i++) {
+      const line = renderedLines[i];
+      const s = line.startIndex, e = s + line.text.length;
+      // 커서가 현재 줄 범위 내에 있거나, 줄 끝에 있는 경우
+      if (selStart >= s && selStart <= e) {
+        // 마지막 줄이 아니면서 줄바꿈(HardBreak)이 아닌데 끝에 걸린 경우 -> 다음 줄 첫머리로 넘김
+        if (selStart === e && !line.isHardBreak && i < renderedLines.length - 1) continue;
+        
+        const before = line.text.substring(0, selStart - s);
+        const cx = TEXT_PADDING_X + textCtx.measureText(before).width;
+        const cy = TEXT_PADDING_Y + i * LINE_HEIGHT;
+        
+        textCtx.save();
+        textCtx.globalCompositeOperation = 'difference';
+        // textCtx.fillStyle = 'white';
+        textCtx.fillStyle = '#ff0';
+        textCtx.fillRect(cx, cy, CURSOR_WIDTH, LINE_HEIGHT);
+        textCtx.restore();
+        break;
+      }
+    }
+  }
+  originalData = textCtx.getImageData(0, 0, textCanvas.width, textCanvas.height);
+  isDirty = true;
+}
+
+/**
+ * ==========================================
+ * 픽셀 재조립 (모자이크/비율)
+ * ==========================================
+ */
+function rebuildPixels() {
+  if (!originalData) return;
+  const pW=textCanvas.width, pH=textCanvas.height;
+  const pChunk=Math.max(1,Math.round(chunk*dpr));
+  
+  let idealW = targetWidth * dpr, newW = idealW;
+  if (pChunk > 1) {
+    const bX = Math.round(idealW / pChunk);
+    newW = Math.max(pChunk, bX * pChunk);
+  }
+  let newH = Math.ceil((pW * pH) / newW);
+  if (pChunk > 1) {
+    const bY = Math.ceil(newH / pChunk);
+    newH = Math.max(pChunk, bY * pChunk);
+  } else newH = Math.max(1, newH);
+
+  if (tempCanvas.width !== newW || tempCanvas.height !== newH) {
+    tempCanvas.width = newW; tempCanvas.height = newH;
+  }
+
+  const newImg = tempCtx.createImageData(newW, newH);
+  const src32 = new Uint32Array(originalData.data.buffer);
+  const dst32 = new Uint32Array(newImg.data.buffer);
+
+  if (pChunk === 1) {
+    const len = Math.min(src32.length, dst32.length);
+    for (let i = 0; i < len; i++) {
+      const nx = i % newW, ny = Math.floor(i / newW);
+      const dstIdx = ny * newW + nx;
+      if (dstIdx < dst32.length) {
+        const px = src32[i];
+        dst32[dstIdx] = (px === 0xFFFFFFFF) ? 0 : px;
+      }
+    }
+  } else {
+    const nCX = Math.ceil(pW / pChunk), nCY = Math.ceil(pH / pChunk);
+    const outCX = Math.floor(newW / pChunk) || 1;
+    let tBX = 0, tBY = 0;
+    
+    for (let by = 0; by < nCY; by++) {
+      for (let bx = 0; bx < nCX; bx++) {
+        const sBX=bx*pChunk, sBY=by*pChunk, dBX=tBX*pChunk, dBY=tBY*pChunk;
+        for (let cy = 0; cy < pChunk; cy++) {
+          const sy=sBY+cy, dy=dBY+cy; if (sy>=pH||dy>=newH) continue;
+          const sRow=sy*pW, dRow=dy*newW;
+          for (let cx = 0; cx < pChunk; cx++) {
+            const sx=sBX+cx, dx=dBX+cx; if (sx>=pW||dx>=newW) continue;
+            const px=src32[sRow+sx];
+            dst32[dRow+dx]=(px===0xFFFFFFFF)?0:px;
+          }
+        }
+        tBX++; if (tBX>=outCX){tBX=0; tBY++;}
+      }
+    }
+  }
+  tempCtx.putImageData(newImg, 0, 0);
+  curW = newW / dpr; curH = newH / dpr;
+}
+
+function rebuildAndRender() {
+  rebuildPixels();
+  dpr = window.devicePixelRatio || 1;
+  if (canvasWrapper.style.width !== `${curW}px`) {
+    canvasWrapper.style.width = `${curW}px`;
+    canvasWrapper.style.height = `${curH}px`;
+  }
+  if (mainCanvas.width !== curW * dpr || mainCanvas.height !== curH * dpr) {
+    mainCanvas.width = curW * dpr;
+    mainCanvas.height = curH * dpr;
+  }
+  mainCtx.imageSmoothingEnabled = false;
+  mainCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
+  mainCtx.setTransform(1,0,0,1,0,0);
+  if (curW > 0 && curH > 0) mainCtx.drawImage(tempCanvas, 0, 0);
+}
+
+/**
+ * ==========================================
+ * 인터랙션 (드래그 / 키보드)
+ * ==========================================
+ */
+const handleStart = (cx, cy, target) => {
+  if (target.closest && (target.tagName === 'BUTTON' || target.tagName === 'INPUT')) return;
+  if (target === overlayCanvas) {
+    const region = getHitRegion(cx, cy);
+    const rect = canvasWrapper.getBoundingClientRect();
+
+    // [추가됨] 헤더 클릭 처리
+    if (region === 'header-left') {
+      chunk = 1;          // 청크 크기 1로 초기화
+      isDirty = true;     // 픽셀 재조립 요청
+      isOverlayDirty = true; // 헤더 텍스트 갱신 요청
+      return;
+    }
+    if (region === 'header-right') {
+      targetWidth = INITIAL_SIZE; // 비율 1.00 (원본 크기)으로 초기화
+      isDirty = true;
+      isOverlayDirty = true;
+      return;
+    }
+
+    // [추가됨] 중앙 푸터 클릭 (토글)
+    if (region === 'footer-center') {
+      showOverlayStrings = !showOverlayStrings; // 상태 반전
+      isOverlayDirty = true; // 화면 갱신 요청
+      return;
+    }
+
+    if (region === 'horizontal') {
+      activeDragTarget = 'horizontal'; dragStartX=cx; dragStartY=cy; accumulatedDelta=0; return;
+    }
+    if (region === 'vertical') {
+      activeDragTarget = 'vertical'; dragStartX=cx; dragStartY=cy; accumulatedDelta=0; return;
+    }
+    if (cx >= rect.left && cx <= rect.right && cy >= rect.top && cy <= rect.bottom) {
+      activeDragTarget = 'canvas';
+      dragStartX=cx; dragStartY=cy;
+      canvasDragStartOffsetX = canvasOffsetX; canvasDragStartOffsetY = canvasOffsetY;
+      // 캔버스 클릭 시 입력창 포커스 유지
+      hiddenInput.focus();
+      
+      // 텍스트 커서 위치 잡기 (마우스 좌표 -> 문자 인덱스)
+      const clickX = cx - rect.left;
+      const clickY = cy - rect.top;
+      const index = getIndexFromCoords(clickX, clickY);
+      hiddenInput.setSelectionRange(index, index);
+      isTextDirty = true;
+      return;
+    }
+  }
+  activeDragTarget = null;
+};
+
+const handleMove = (cx, cy) => {
+  if (!activeDragTarget) return;
+  const dx = cx - dragStartX, dy = cy - dragStartY;
+  
+  if (activeDragTarget === 'canvas') {
+    canvasOffsetX = canvasDragStartOffsetX + dx;
+    canvasOffsetY = canvasDragStartOffsetY + dy;
+    canvasWrapper.style.transform = `translate(${canvasOffsetX}px, ${canvasOffsetY}px)`;
+    return;
+  }
+  
+  if (activeDragTarget === 'horizontal') {
+    hTextOffset+=dx; hTextY+=dy; isOverlayDirty=true;
+    accumulatedDelta -= dy;
+    let th = Math.max(5, INTERACTION.CHUNK_THRESHOLD - (Math.abs(accumulatedDelta) * INTERACTION.ACCEL_FACTOR));
+    if (Math.abs(accumulatedDelta) >= th) {
+      const step = Math.sign(accumulatedDelta);
+      let nc = chunk + step;
+      if(nc<1)nc=1; if(nc>200)nc=200;
+      if(chunk!==nc){chunk=nc; isDirty=true;}
+      accumulatedDelta -= step * th;
+    }
+    dragStartX=cx; dragStartY=cy; return;
+  }
+  
+  if (activeDragTarget === 'vertical') {
+    vTextX+=dx; vTextOffset-=dy; isOverlayDirty=true;
+    accumulatedDelta += dx;
+    let th = Math.max(5, INTERACTION.RATIO_THRESHOLD - (Math.abs(accumulatedDelta) * INTERACTION.ACCEL_FACTOR));
+    if (Math.abs(accumulatedDelta) >= th) {
+      const step = Math.sign(accumulatedDelta);
+      targetWidth += step * INTERACTION.SIZE_STEP;
+      if(targetWidth<10)targetWidth=10;
+      isDirty=true; accumulatedDelta-=step*th;
+    }
+    dragStartX=cx; dragStartY=cy;
+  }
+};
+
+const handleEnd = () => { activeDragTarget = null; accumulatedDelta = 0; };
+
+function getIndexFromCoords(canvasX, canvasY) {
+  // 현재 캔버스 크기(curW, curH)와 원본 크기(INITIAL_SIZE) 비율 고려
+  const ratioX = INITIAL_SIZE / curW;
+  const ratioY = INITIAL_SIZE / curH;
+  
+  const x = canvasX * ratioX;
+  const y = canvasY * ratioY;
+  
+  let lineIndex = Math.floor((y - TEXT_PADDING_Y) / LINE_HEIGHT);
+  if (lineIndex < 0) lineIndex = 0;
+  if (lineIndex >= renderedLines.length) lineIndex = renderedLines.length - 1;
+  
+  const lineObj = renderedLines[lineIndex];
+  if (!lineObj) return hiddenInput.value.length;
+  
+  const relativeX = x - TEXT_PADDING_X;
+  let bestIndex = 0, minDiff = Infinity;
+  
+  textCtx.font = FONT_STYLE;
+  for (let i = 0; i <= lineObj.text.length; i++) {
+    const w = textCtx.measureText(lineObj.text.substring(0, i)).width;
+    const diff = Math.abs(w - relativeX);
+    if (diff < minDiff) { minDiff = diff; bestIndex = i; }
+  }
+  return lineObj.startIndex + bestIndex;
+}
+
+/**
+ * ==========================================
+ * 키보드 상하 이동 (Visual Movement) 로직
+ * ==========================================
+ */
+hiddenInput.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+    e.preventDefault();
+
+    // 1. 현재 움직임의 기준이 될 커서(activePos)와 고정점(anchorPos) 결정
+    const start = hiddenInput.selectionStart;
+    const end = hiddenInput.selectionEnd;
+    const dir = hiddenInput.selectionDirection || 'none'; // 'forward', 'backward', 'none'
+
+    let activePos; // 이동시킬 커서 위치
+    let anchorPos; // 고정된 기준점 (Shift 사용 시)
+
+    if (!e.shiftKey) {
+      // [Shift 미사용]
+      // 위로 갈 땐 앞쪽(start) 기준, 아래로 갈 땐 뒤쪽(end) 기준으로 이동하는 것이 자연스러움
+      activePos = (e.key === 'ArrowUp') ? start : end;
+    } else {
+      // [Shift 사용]
+      // 선택 방향에 따라 움직이는 커서가 다름
+      if (dir === 'backward') {
+        activePos = start; // 역방향 선택 중이면 앞쪽 커서가 움직임
+        anchorPos = end;
+      } else {
+        activePos = end;   // 정방향 선택 중이면 뒤쪽 커서가 움직임 (선택 없어도 기본 end)
+        anchorPos = start;
+      }
+    }
+    
+    // 2. activePos가 현재 몇 번째 시각적 라인(renderedLines)에 있는지 찾기
+    let currentLineIdx = -1;
+    let charOffsetInLine = 0; // 현재 라인 시작점으로부터의 픽셀 거리 (수직 이동 유지를 위해)
+    
+    for (let i = 0; i < renderedLines.length; i++) {
+      const line = renderedLines[i];
+      const s = line.startIndex, eIdx = s + line.text.length;
+      
+      if (activePos >= s && activePos <= eIdx) {
+        // 라인 끝인데 줄바꿈(HardBreak)이 아니면, 다음 줄의 시작점으로 취급하여 건너뜀
+        if (activePos === eIdx && !line.isHardBreak && i < renderedLines.length - 1) continue;
+        
+        currentLineIdx = i;
+        const sub = line.text.substring(0, activePos - s);
+        textCtx.font = FONT_STYLE;
+        charOffsetInLine = textCtx.measureText(sub).width;
+        break;
+      }
+    }
+
+    if (currentLineIdx === -1) return;
+
+    // 3. 목표 라인 인덱스 결정
+    let targetLineIdx = currentLineIdx + (e.key === 'ArrowUp' ? -1 : 1);
+    if (targetLineIdx < 0) targetLineIdx = 0;
+    if (targetLineIdx >= renderedLines.length) targetLineIdx = renderedLines.length - 1;
+
+    // 더 이상 이동할 곳이 없으면 종료 (단, Shift 선택 시에는 동작 정책에 따라 다를 수 있으나 여기선 멈춤)
+    if (targetLineIdx === currentLineIdx) return;
+
+    // 4. 목표 라인에서 수직 위치가 가장 가까운 문자 인덱스 찾기
+    const targetLine = renderedLines[targetLineIdx];
+    let bestK = 0; 
+    let minDiff = Infinity;
+    
+    textCtx.font = FONT_STYLE;
+    for (let k = 0; k <= targetLine.text.length; k++) {
+      const w = textCtx.measureText(targetLine.text.substring(0, k)).width;
+      const diff = Math.abs(w - charOffsetInLine);
+      if (diff < minDiff) {
+        minDiff = diff;
+        bestK = k;
+      }
+    }
+    
+    const newPos = targetLine.startIndex + bestK;
+
+    // 5. 최종 커서/선택영역 반영
+    if (!e.shiftKey) {
+      // 단순 이동
+      hiddenInput.setSelectionRange(newPos, newPos);
+    } else {
+      // Shift 선택 확장/축소
+      if (newPos < anchorPos) {
+        // 새로운 위치가 고정점보다 앞쪽 -> 역방향 선택
+        hiddenInput.setSelectionRange(newPos, anchorPos, 'backward');
+      } else {
+        // 새로운 위치가 고정점보다 뒤쪽 -> 정방향 선택
+        hiddenInput.setSelectionRange(anchorPos, newPos, 'forward');
+      }
+    }
+    
+    // 6. 화면 갱신 요청
+    isTextDirty = true;
+    resetCursorBlink(); // 커서 즉시 표시
+  }
+  else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+    // 좌우 이동은 브라우저 기본 동작 후 화면 갱신만 수행
+    setTimeout(() => {
+       isTextDirty = true;
+       resetCursorBlink();
+    }, 0);
+  }
+});
+
+// 마우스/터치 이벤트 바인딩
+document.body.addEventListener('mousedown', (e) => {
+  handleStart(e.clientX, e.clientY, e.target);
+  if (e.target !== hiddenInput) e.preventDefault();
+});
+window.addEventListener('mousemove', (e) => handleMove(e.clientX, e.clientY));
+window.addEventListener('mouseup', handleEnd);
+
+document.body.addEventListener('touchstart', (e) => {
+  if (e.touches.length > 0) handleStart(e.touches[0].clientX, e.touches[0].clientY, e.target);
+  if (e.target !== document.getElementById('resetBtn') && e.target.tagName !== 'INPUT') e.preventDefault();
+}, { passive: false });
+window.addEventListener('touchmove', (e) => {
+  if (e.touches.length > 0) handleMove(e.touches[0].clientX, e.touches[0].clientY);
+  e.preventDefault();
+}, { passive: false });
+window.addEventListener('touchend', handleEnd);
+
+// 입력창 이벤트
+hiddenInput.addEventListener('input', () => { isTextDirty = true; resetCursorBlink(); });
+hiddenInput.addEventListener('click', () => { isTextDirty = true; resetCursorBlink(); });
+document.getElementById("resetBtn").addEventListener("click", () => {
+  hiddenInput.value = INITIAL_CONTENT;
+  hiddenInput.focus();
+  isTextDirty = true;
+  setInitialPosition();
+  resetOverlayPositions();
+});
+
+// 커서 깜빡임 (보통 속도: 530ms)
+function resetCursorBlink() {
+  showCursor = true;
+  if (cursorInterval) clearInterval(cursorInterval);
+  cursorInterval = setInterval(() => {
+    showCursor = !showCursor;
+    isTextDirty = true; // 깜빡임 렌더링
+  }, 530);
+}
+
+/**
+ * ==========================================
+ * 실행 및 루프
+ * ==========================================
+ */
+hiddenInput.value = INITIAL_CONTENT;
+setInitialPosition();
+initOverlay();
+resetCursorBlink();
+drawTextToCanvas();
+rebuildPixels();
+rebuildAndRender();
+
+// [수정 8] 폰트 로딩 완료 후 '본문'과 '오버레이' 모두 다시 그리기
+document.fonts.ready.then(() => {
+  console.log("Fonts loaded. Redrawing all text.");
+  isTextDirty = true;     // [핵심] 본문 텍스트 다시 그리기 요청
+  cacheOverlayPatterns(); // 오버레이 패턴 다시 생성
+  isOverlayDirty = true;  // 오버레이 갱신 요청
+});
+
+function animationLoop() {
+  if (isTextDirty) { drawTextToCanvas(); isTextDirty = false; isDirty = true; }
+  if (isOverlayDirty) { renderOverlay(); isOverlayDirty = false; }
+  if (isDirty) { rebuildAndRender(); isDirty = false; }
+  requestAnimationFrame(animationLoop);
+}
+requestAnimationFrame(animationLoop);
+</script>
+</body>
+</html>
