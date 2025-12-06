@@ -2,12 +2,18 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8"/>
-<title>FLATLAND 1.5</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<title>FLATLAND</title>
+<!-- <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang&family=Nanum+Myeongjo&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang&family=Nanum+Myeongjo&display=swap" rel="stylesheet"> -->
 <style>
-/* [수정 2] 아이패드 폰트 강제 적용 및 렌더링 보정 */
+@font-face {
+  font-family: 'Gowun Batang';
+  font-weight: 400;              /* 보통 굵기 */
+  font-style: normal;
+  src: url('./fonts/GowunBatang-Regular.ttf') format('truetype');
+}
+
 html, body {
   margin: 0; height: 100%; background-color: white; 
   font-family: 'Gowun Batang', serif;
