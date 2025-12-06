@@ -112,8 +112,9 @@ const INITIAL_CONTENT =
 
 const FONT_SIZE = (Math.random() * 110) + 12;
 // [수정됨] 중요: 폰트 웨이트 300 -> 400 (고운바탕은 300이 없어 아이패드에서 깨짐)
+// 650
 const FONT_STYLE = `400 ${FONT_SIZE}px ${INITIAL_SETTINGS.FONT_FAMILY}`;
-const INITIAL_SIZE = 650;
+const INITIAL_SIZE = 1000;
 const TEXT_PADDING_X = 0;
 const TEXT_PADDING_Y = 0;
 const LINE_HEIGHT = FONT_SIZE;
@@ -122,7 +123,7 @@ const CURSOR_WIDTH = 14;
 // 오버레이 폰트 크기 기본값 60 36 18
 const HORIZONTAL_TEXT = "우리는북쪽,남쪽,동쪽,서쪽외에는그어떤방향으로도움직일수없습니다.";
 const VERTICAL_TEXT   = "이번엔왼쪽으로움직여봐.그건무슨방향이지?";
-const OVERLAY_FONT_SIZE = (Math.random() * 18) + 4;
+const OVERLAY_FONT_SIZE = (Math.random() * 24) + 12;
 // [수정됨] 300 -> 400
 const OVERLAY_FONT = `400 ${OVERLAY_FONT_SIZE}px ${INITIAL_SETTINGS.FONT_FAMILY}`;
 const OVERLAY_COLOR = "black";
@@ -321,7 +322,7 @@ function renderOverlay() {
   
   const lText = "최정욱";
   const cText = "FLATLAND, 1884";
-  const rText = "2025/12/1";
+  const rText = "2025/12/6";
   
   const lM = overlayCtx.measureText(lText);
   const cM = overlayCtx.measureText(cText);
