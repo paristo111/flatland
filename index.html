@@ -22,17 +22,17 @@
 
 html, body {
   margin: 0; height: 100%; background-color: white; 
-  font-family: 'DungGeunMo', serif;
+  font-family: 'Gowun Batang', serif;
   font-weight: 400; /* 중요: 300 아님 */
   overflow: hidden;
   cursor: default; touch-action: none;
   -webkit-font-smoothing: antialiased;
 }
 /* 폼 요소에도 폰트 상속 강제 */
-button, input, label, span, textarea, select { 
+/* button, input, label, span, textarea, select { 
   cursor: default; 
-  font-family: 'DungGeunMo', serif !important;
-}
+  font-family: 'Gowun Batang', serif !important;
+} */
 #container {
   position: relative; width: 100vw; height: 100vh; overflow: hidden;
 }
@@ -293,7 +293,7 @@ function renderOverlay() {
   // 3-2. 측정
   const cm = overlayCtx.measureText(chunkText);
   const rm = overlayCtx.measureText(ratioText);
-  const th = FOOTER_FONT_SIZE * 1.4; // 텍스트 박스 높이
+  const th = FOOTER_FONT_SIZE * 1.0; // 텍스트 박스 높이
 
   // 3-3. 그리기 (TextBaseline = top)
   overlayCtx.textBaseline = "top";
@@ -357,7 +357,7 @@ function renderOverlay() {
 function getHitRegion(x,y){
   const w = window.innerWidth;
   const h = window.innerHeight;
-  const th = FOOTER_FONT_SIZE * 1.4;
+  const th = FOOTER_FONT_SIZE * 1.0;
   const footerY = h - FOOTER_MARGIN - th;
   
   // [추가됨] 헤더 영역 감지 (FOOTER_MARGIN 등을 고려하여 대략적 영역 설정)
