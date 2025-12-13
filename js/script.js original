@@ -28,10 +28,9 @@ const INITIAL_SETTINGS = {
 };
 
 const INITIAL_CONTENT =
-// "자, 이제 상상력을 조금만 더 발휘해서, 플랫랜드의 정사각형이 자기 자신과 평행하게 '위쪽으로' 움직인다고 생각해 보게.\n뭐라고요? 북쪽으로 말입니까?\n아니, 북쪽이 아닐세. '위쪽'이라니까. 플랫랜드 바깥으로 완전히 벗어나는 방향이지. 만약 사각형이 북쪽으로 움직인다면, 남쪽의 점들은 북쪽의 점들이 있던 자리를 통과해서 움직여야겠지. 하지만 내 말은 그런 게 아니야. 내 말은 자네 안의 모든 점이—자네는 정사각형이니 설명하기 좋군—자네 안의 모든 점, 즉 자네가 '내부'라고 부르는 곳의 모든 점이 공간을 뚫고 위쪽으로 지나간다는 뜻일세. 어떤 점도 다른 점이 있던 자리를 통과하지 않고, 각 점이 저마다의 직선을 그리면서 말이야. 이건 모두 유비에 딱 들어맞는 설명일세. 자네도 분명 이해할 거야.\n나는 끓어오르는 짜증을 억누르며—마음 같아서는 이 방문객에게 무작정 달려들어 그를 공간 밖으로든, 플랫랜드 밖으로든, 어디로든 밀어버려 없애버리고 싶었지만—이렇게 대답했다.\n그래서 당신이 '위쪽'이라는 단어로 지칭하는 그 움직임으로 제가 만들어낸다는 도형의 정체가 뭡니까? 우리 플랫랜드의 언어로 설명할 수 있겠지요?\n아, 물론이지. 아주 명백하고 단순해. 엄밀한 유비에 따른 것이니까. 단, 그 결과물을 '도형'이라고 부르면 안 되고 '입체'라고 불러야 해. 내가 설명해 주지. 아니, 내가 아니라 '유비'가 설명해 줄 걸세.\n우리는 하나의 점에서 시작했네. 점은 그 자체로 점이니 당연히 끝점이 하나뿐이지. 점 하나가 움직여서 끝점이 2개인 선을 만들었어. 선 하나는 끝점이 4개인 정사각형을 만들지. 자, 이제 자네 질문에 자네 스스로 답할 수 있을 거야. 1, 2, 4는 분명히 기하급수를 이루고 있네. 다음 숫자는 무엇인가?";
-"자, 이제 상상력을 조금만 더 발휘해서, 플랫랜드의 정사각형이 자기 자신과 평행하게 '위쪽으로' 움직인다고 생각해 보게.\n뭐라고요? 북쪽으로 말입니까?\n아니, 북쪽이 아닐세. '위쪽'이라니까. 플랫랜드 바깥으로 완전히 벗어나는 방향이지. 만약 사각형이 북쪽으로 움직인다면, 남쪽의 점들은 북쪽의 점들이 있던 자리를 통과해서 움직여야겠지. 하지만 내 말은 그런 게 아니야. 내 말은 자네 안의 모든 점이—자네는 정사각형이니 설명하기 좋군—자네 안의 모든 점, 즉 자네가 '내부'라고 부르는 곳의 모든 점이 공간을 뚫고 위쪽으로 지나간다는 뜻일세. 어떤 점도 다른 점이 있던 자리를 통과하지 않고, 각 점이 저마다의 직선을 그리면서 말이야. 이건 모두 유비에 딱 들어맞는 설명일세. 자네도 분명 이해할 거야.\n나는 끓어오르는 짜증을 억누르며—마음 같아서는 이 방문객에게 무작정 달려들어 그를 공간 밖으로든, 플랫랜드 밖으로든, 어디로든 밀어버려 없애버리고 싶었지만—이렇게 대답했다.\n그래서 당신이 '위쪽'이라는 단어로 지칭하는 그 움직임으로 제가 만들어낸다는 도형의 정체가 뭡니까? 우리 플랫랜드의 언어로 설명할 수 있겠지요?\n아, 물론이지. 아주 명백하고 단순해. 엄밀한 유비에 따른 것이니까. 단, 그 결과물을 '도형'이라고 부르면 안 되고 '입체'라고 불러야 한다네.";
+"자, 이제 상상력을 조금만 더 발휘해서, 플랫랜드의 정사각형이 자기 자신과 평행하게 '위쪽으로' 움직인다고 생각해 보게.\n뭐라고요? 북쪽으로 말입니까?\n아니, 북쪽이 아닐세. '위쪽'이라니까. 플랫랜드 바깥으로 완전히 벗어나는 방향이지. 만약 사각형이 북쪽으로 움직인다면, 남쪽의 점들은 북쪽의 점들이 있던 자리를 통과해서 움직여야겠지. 하지만 내 말은 그런 게 아니야. 내 말은 자네 안의 모든 점이—자네는 정사각형이니 설명하기 좋군—자네 안의 모든 점, 즉 자네가 '내부'라고 부르는 곳의 모든 점이 공간을 뚫고 위쪽으로 지나간다는 뜻일세. 어떤 점도 다른 점이 있던 자리를 통과하지 않고, 각 점이 저마다의 직선을 그리면서 말이야. 이건 모두 유비에 딱 들어맞는 설명일세. 자네도 분명 이해할 거야.\n나는 끓어오르는 짜증을 억누르며—마음 같아서는 이 방문객에게 무작정 달려들어 그를 공간 밖으로든, 플랫랜드 밖으로든, 어디로든 밀어버려 없애버리고 싶었지만—이렇게 대답했다.\n그래서 당신이 '위쪽'이라는 단어로 지칭하는 그 움직임으로 제가 만들어낸다는 도형의 정체가 뭡니까? 우리 플랫랜드의 언어로 설명할 수 있겠지요?\n아, 물론이지. 아주 명백하고 단순해. 엄밀한 유비에 따른 것이니까. 단, 그 결과물을 '도형'이라고 부르면 안 되고 '입체'라고 불러야 해. 내가 설명해 주지. 아니, 내가 아니라 '유비'가 설명해 줄 걸세.\n우리는 하나의 점에서 시작했네. 점은 그 자체로 점이니 당연히 끝점이 하나뿐이지. 점 하나가 움직여서 끝점이 2개인 선을 만들었어. 선 하나는 끝점이 4개인 정사각형을 만들지. 자, 이제 자네 질문에 자네 스스로 답할 수 있을 거야. 1, 2, 4는 분명히 기하급수를 이루고 있네. 다음 숫자는 무엇인가?";
 
-const FONT_SIZE = (Math.random() * 48) + 36;
+const FONT_SIZE = (Math.random() * 84) + 36;
 // [수정됨] 중요: 폰트 웨이트 300 -> 400 (고운바탕은 300이 없어 아이패드에서 깨짐)
 // 650
 const FONT_STYLE = `400 ${FONT_SIZE}px ${INITIAL_SETTINGS.FONT_FAMILY}`;
@@ -59,7 +58,11 @@ const FOOTER_TEXT_COLOR = "#000";
 const FOOTER_BG_COLOR = "#fff";
 const FOOTER_MARGIN = 10;
 
-// 상태 변수
+/**
+ * ==========================================
+ * 상태 변수
+ * ==========================================
+ */
 let hTextY = 0, hTextOffset = 0;
 let vTextX = 0, vTextOffset = 0;
 let chunk = 1, targetWidth = INITIAL_SIZE;
@@ -124,15 +127,6 @@ function setInitialPosition() {
   // 기존 초기화 로직 (청크, 비율)
   chunk = INITIAL_SETTINGS.CHUNK;
   targetWidth = INITIAL_SIZE / INITIAL_SETTINGS.RATIO_SCALE;
-
-  // [추가] 캔버스 CSS 스타일 설정 (확대 시 흐림 방지)
-  // 브라우저 렌더링 방식을 '픽셀 단위'로 고정하여 성능 저하 없이 선명함 유지
-  mainCanvas.style.imageRendering = "pixelated";   // 크롬, 엣지 등 표준
-  mainCanvas.style.imageRendering = "crisp-edges"; // 파이어폭스 등 일부 호환
-
-  // 오버레이(텍스트/UI)도 선명하게 유지하려면 동일하게 적용
-  overlayCanvas.style.imageRendering = "pixelated";
-  overlayCanvas.style.imageRendering = "crisp-edges";
 }
 
 function initOverlay() {
@@ -361,106 +355,82 @@ function calculateWrappedLines(text) {
 }
 
 function drawTextToCanvas() {
-    dpr = window.devicePixelRatio || 1;
+  dpr = window.devicePixelRatio || 1;
+  if (textCanvas.width !== INITIAL_SIZE * dpr) {
+    textCanvas.width=INITIAL_SIZE*dpr; textCanvas.height=INITIAL_SIZE*dpr;
+    textCtx.setTransform(1,0,0,1,0,0); textCtx.scale(dpr,dpr);
+  }
 
-    // 1. [변경] 캔버스 크기 설정 전, 텍스트 줄바꿈 계산을 먼저 수행하여 필요한 높이를 구함
-    const val = hiddenInput.value;
-    
-    // 폰트 스타일을 미리 설정해야 measureText가 정확히 작동함
-    textCtx.font = FONT_STYLE; 
+  const val = hiddenInput.value;
+  if (val !== cachedTextValue || renderedLines.length === 0) {
+    renderedLines = calculateWrappedLines(val);
+    cachedTextValue = val;
+  }
+  
+  const selStart = hiddenInput.selectionStart;
+  const selEnd = hiddenInput.selectionEnd;
+  const hasSelection = selStart !== selEnd;
 
-    // 내용이 변경되었거나 초기화 상태라면 줄바꿈(renderedLines) 다시 계산
-    if (val !== cachedTextValue || renderedLines.length === 0) {
-        renderedLines = calculateWrappedLines(val);
-        cachedTextValue = val;
-    }
+  textCtx.fillStyle = 'white'; textCtx.fillRect(0,0,INITIAL_SIZE,INITIAL_SIZE);
+  textCtx.font = FONT_STYLE; textCtx.textBaseline = 'top';
+  
+  // 텍스트 배경(검정)
+  textCtx.fillStyle = 'black';
+  for (let i = 0; i < renderedLines.length; i++) {
+    const t = renderedLines[i].text;
+    if (t) textCtx.fillRect(TEXT_PADDING_X, TEXT_PADDING_Y + i*LINE_HEIGHT, textCtx.measureText(t).width, LINE_HEIGHT);
+  }
+  // 텍스트(흰색)
+  textCtx.fillStyle = 'white';
+  for (let i = 0; i < renderedLines.length; i++) {
+    textCtx.fillText(renderedLines[i].text, TEXT_PADDING_X, TEXT_PADDING_Y + i*LINE_HEIGHT);
+  }
 
-    // 2. [추가] 필요한 높이 계산 (줄 수 * 줄 높이 + 상하 여백)
-    // 기본 크기(1000)보다 내용이 길면 그만큼 늘어남
-    const totalTextHeight = (renderedLines.length * LINE_HEIGHT) + (TEXT_PADDING_Y * 2);
-    const newHeight = Math.max(INITIAL_SIZE, totalTextHeight);
-
-    // 3. [변경] 계산된 높이(newHeight)를 적용하여 캔버스 리사이징
-    // 가로(INITIAL_SIZE)는 유지, 세로는 newHeight 적용
-    if (textCanvas.width !== INITIAL_SIZE * dpr || textCanvas.height !== newHeight * dpr) {
-        textCanvas.width = INITIAL_SIZE * dpr;
-        textCanvas.height = newHeight * dpr;
-        textCtx.setTransform(1, 0, 0, 1, 0, 0);
-        textCtx.scale(dpr, dpr);
-    }
-
-    // 4. 그리기 시작
-    const selStart = hiddenInput.selectionStart;
-    const selEnd = hiddenInput.selectionEnd;
-    const hasSelection = selStart !== selEnd;
-
-    // [변경] 배경 채우기 높이를 newHeight로 변경 (기존 INITIAL_SIZE에서 수정)
-    textCtx.fillStyle = 'white'; 
-    textCtx.fillRect(0, 0, INITIAL_SIZE, newHeight);
-
-    textCtx.font = FONT_STYLE; 
-    textCtx.textBaseline = 'top';
-
-    // 텍스트 배경(검정)
-    textCtx.fillStyle = 'black';
+  if (hasSelection) {
+    textCtx.globalCompositeOperation = 'difference';
+    // textCtx.fillStyle = 'white';
+    textCtx.fillStyle = '#ff0';
     for (let i = 0; i < renderedLines.length; i++) {
-        const t = renderedLines[i].text;
-        if (t) textCtx.fillRect(TEXT_PADDING_X, TEXT_PADDING_Y + i * LINE_HEIGHT, textCtx.measureText(t).width, LINE_HEIGHT);
+      const line = renderedLines[i];
+      const s = line.startIndex, e = s + line.text.length;
+      const is = Math.max(s, selStart), ie = Math.min(e, selEnd);
+      if (is < ie) {
+        const before = line.text.substring(0, is - s);
+        const sel = line.text.substring(is - s, ie - s);
+        const bx = TEXT_PADDING_X + textCtx.measureText(before).width;
+        const bw = textCtx.measureText(sel).width;
+        textCtx.fillRect(bx, TEXT_PADDING_Y + i*LINE_HEIGHT, bw, LINE_HEIGHT);
+      }
     }
+    textCtx.globalCompositeOperation = 'source-over';
+  }
 
-    // 텍스트(흰색)
-    textCtx.fillStyle = 'white';
+  if (!hasSelection && showCursor) {
+    // 커서 위치 찾기
     for (let i = 0; i < renderedLines.length; i++) {
-        textCtx.fillText(renderedLines[i].text, TEXT_PADDING_X, TEXT_PADDING_Y + i * LINE_HEIGHT);
-    }
-
-    // ... (이하 선택 영역 반전 및 커서 그리기 로직은 기존과 동일) ...
-
-    if (hasSelection) {
+      const line = renderedLines[i];
+      const s = line.startIndex, e = s + line.text.length;
+      // 커서가 현재 줄 범위 내에 있거나, 줄 끝에 있는 경우
+      if (selStart >= s && selStart <= e) {
+        // 마지막 줄이 아니면서 줄바꿈(HardBreak)이 아닌데 끝에 걸린 경우 -> 다음 줄 첫머리로 넘김
+        if (selStart === e && !line.isHardBreak && i < renderedLines.length - 1) continue;
+        
+        const before = line.text.substring(0, selStart - s);
+        const cx = TEXT_PADDING_X + textCtx.measureText(before).width;
+        const cy = TEXT_PADDING_Y + i * LINE_HEIGHT;
+        
+        textCtx.save();
         textCtx.globalCompositeOperation = 'difference';
+        // textCtx.fillStyle = 'white';
         textCtx.fillStyle = '#ff0';
-        for (let i = 0; i < renderedLines.length; i++) {
-            const line = renderedLines[i];
-            const s = line.startIndex, e = s + line.text.length;
-            const is = Math.max(s, selStart), ie = Math.min(e, selEnd);
-
-            if (is < ie) {
-                const before = line.text.substring(0, is - s);
-                const sel = line.text.substring(is - s, ie - s);
-                const bx = TEXT_PADDING_X + textCtx.measureText(before).width;
-                const bw = textCtx.measureText(sel).width;
-                textCtx.fillRect(bx, TEXT_PADDING_Y + i * LINE_HEIGHT, bw, LINE_HEIGHT);
-            }
-        }
-        textCtx.globalCompositeOperation = 'source-over';
+        textCtx.fillRect(cx, cy, CURSOR_WIDTH, LINE_HEIGHT);
+        textCtx.restore();
+        break;
+      }
     }
-
-    if (!hasSelection && showCursor) {
-        // 커서 위치 찾기
-        for (let i = 0; i < renderedLines.length; i++) {
-            const line = renderedLines[i];
-            const s = line.startIndex, e = s + line.text.length;
-            
-            if (selStart >= s && selStart <= e) {
-                if (selStart === e && !line.isHardBreak && i < renderedLines.length - 1) continue;
-                
-                const before = line.text.substring(0, selStart - s);
-                const cx = TEXT_PADDING_X + textCtx.measureText(before).width;
-                const cy = TEXT_PADDING_Y + i * LINE_HEIGHT;
-                
-                textCtx.save();
-                textCtx.globalCompositeOperation = 'difference';
-                textCtx.fillStyle = '#ff0';
-                textCtx.fillRect(cx, cy, CURSOR_WIDTH, LINE_HEIGHT);
-                textCtx.restore();
-                break;
-            }
-        }
-    }
-    
-    // [중요] 변경된 크기에 맞춰 데이터 추출
-    originalData = textCtx.getImageData(0, 0, textCanvas.width, textCanvas.height);
-    isDirty = true;
+  }
+  originalData = textCtx.getImageData(0, 0, textCanvas.width, textCanvas.height);
+  isDirty = true;
 }
 
 /**
