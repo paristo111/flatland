@@ -14,12 +14,6 @@
   src: url('./fonts/GowunBatang-Regular.ttf') format('truetype');
 }
 
-@font-face {
-  font-family: 'DungGeunMo';
-  font-style: normal;
-  src: url('./fonts/DungGeunMo.ttf') format('truetype');
-}
-
 html, body {
   margin: 0; height: 100%; background-color: white; 
   font-family: 'Gowun Batang', serif;
@@ -28,11 +22,7 @@ html, body {
   cursor: default; touch-action: none;
   -webkit-font-smoothing: antialiased;
 }
-/* 폼 요소에도 폰트 상속 강제 */
-/* button, input, label, span, textarea, select { 
-  cursor: default; 
-  font-family: 'Gowun Batang', serif !important;
-} */
+
 #container {
   position: relative; width: 100vw; height: 100vh; overflow: hidden;
 }
@@ -123,16 +113,17 @@ const CURSOR_WIDTH = FONT_SIZE / 3;
 // 오버레이 폰트 크기 기본값 60 36 18
 const HORIZONTAL_TEXT = "우리는'북쪽'과'남쪽'외에는그어떤방향으로도움직일수없습니다.";
 const VERTICAL_TEXT   = "이번엔'왼쪽'과'오른쪽'으로움직여봐.그건무슨방향이지?";
-const OVERLAY_FONT_SIZE = (Math.random() * 24) + 12;
-// [수정됨] 300 -> 400
+// const OVERLAY_FONT_SIZE = (Math.random() * 12) + 12;
+const OVERLAY_FONT_SIZE = 8;
 const OVERLAY_FONT = `400 ${OVERLAY_FONT_SIZE}px ${INITIAL_SETTINGS.FONT_FAMILY}`;
-const OVERLAY_COLOR = "black";
+const OVERLAY_COLOR = "#ff0";
+const OVERLAY_BG_COLOR = "#f000";
 
 // 푸터
 const FOOTER_FONT_SIZE = 16;
 const FOOTER_FONT = `400 ${FOOTER_FONT_SIZE}px ${INITIAL_SETTINGS.FONT_FAMILY}`;
-const FOOTER_TEXT_COLOR = "black";
-const FOOTER_BG_COLOR = "white";
+const FOOTER_TEXT_COLOR = "#000";
+const FOOTER_BG_COLOR = "#fff";
 const FOOTER_MARGIN = 10;
 
 /**
@@ -219,21 +210,29 @@ function cacheOverlayPatterns() {
   dpr = window.devicePixelRatio || 1;
   hPatternCtx.setTransform(1,0,0,1,0,0); hPatternCtx.font = OVERLAY_FONT;
   const hW = Math.ceil(hPatternCtx.measureText(HORIZONTAL_TEXT).width)+2;
-  const hH = Math.ceil(OVERLAY_FONT_SIZE*1.5);
+  const hH = Math.ceil(OVERLAY_FONT_SIZE*4);
   hPatternCanvas.width=hW*dpr; hPatternCanvas.height=hH*dpr;
   hPatternCtx.setTransform(1,0,0,1,0,0); hPatternCtx.scale(dpr,dpr);
-  hPatternCtx.font=OVERLAY_FONT; hPatternCtx.fillStyle=OVERLAY_COLOR;
-  hPatternCtx.textBaseline="middle"; hPatternCtx.clearRect(0,0,hW,hH);
-  hPatternCtx.fillText(HORIZONTAL_TEXT,0,hH/2);
+  hPatternCtx.font=OVERLAY_FONT; 
+  hPatternCtx.fillStyle=OVERLAY_BG_COLOR;
+  hPatternCtx.fillRect(0, 0, hW, hH);
+  hPatternCtx.textBaseline="middle"; 
+  hPatternCtx.fillStyle=OVERLAY_COLOR;
+  // hPatternCtx.fillText(HORIZONTAL_TEXT,0,hH/2);
+  hPatternCtx.fillRect(0, hH/3, hW, OVERLAY_FONT_SIZE);
 
   vPatternCtx.setTransform(1,0,0,1,0,0); vPatternCtx.font=OVERLAY_FONT;
   const vW = Math.ceil(vPatternCtx.measureText(VERTICAL_TEXT).width)+2;
-  const vH = Math.ceil(OVERLAY_FONT_SIZE*1.5);
+  const vH = Math.ceil(OVERLAY_FONT_SIZE*4);
   vPatternCanvas.width=vW*dpr; vPatternCanvas.height=vH*dpr;
   vPatternCtx.setTransform(1,0,0,1,0,0); vPatternCtx.scale(dpr,dpr);
-  vPatternCtx.font=OVERLAY_FONT; vPatternCtx.fillStyle=OVERLAY_COLOR;
-  vPatternCtx.textBaseline="middle"; vPatternCtx.clearRect(0,0,vW,vH);
-  vPatternCtx.fillText(VERTICAL_TEXT,0,vH/2);
+  vPatternCtx.font=OVERLAY_FONT; 
+  vPatternCtx.fillStyle=OVERLAY_BG_COLOR;
+  vPatternCtx.fillRect(0, 0, hW, hH);
+  vPatternCtx.textBaseline="middle"; 
+  vPatternCtx.fillStyle=OVERLAY_COLOR;
+  // vPatternCtx.fillText(VERTICAL_TEXT,0,vH/2);
+  vPatternCtx.fillRect(0, hH/3, hW, OVERLAY_FONT_SIZE);
 }
 
 function resetOverlayPositions() {
@@ -863,14 +862,6 @@ resetCursorBlink();
 drawTextToCanvas();
 rebuildPixels();
 rebuildAndRender();
-
-// [수정 8] 폰트 로딩 완료 후 '본문'과 '오버레이' 모두 다시 그리기
-document.fonts.ready.then(() => {
-  console.log("Fonts loaded. Redrawing all text.");
-  isTextDirty = true;     // [핵심] 본문 텍스트 다시 그리기 요청
-  cacheOverlayPatterns(); // 오버레이 패턴 다시 생성
-  isOverlayDirty = true;  // 오버레이 갱신 요청
-});
 
 function animationLoop() {
   if (isTextDirty) { drawTextToCanvas(); isTextDirty = false; isDirty = true; }
