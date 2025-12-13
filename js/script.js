@@ -8,8 +8,7 @@ const INTERACTION = {
   RATIO_THRESHOLD: 20,
   ACCEL_FACTOR: 0.05,
   SIZE_STEP: 10,
-  WRAP_BUFFER: 50
-  
+  WRAP_BUFFER: 50  
 };
 
 const INITIAL_SETTINGS = {
@@ -53,8 +52,8 @@ const OVERLAY_COLOR = "#ff0";
 const OVERLAY_BG_COLOR = "#0000";
 
 // 푸터
-const FOOTER_FONT_SIZE = 2;
-const FOOTER_FONT = `400 ${FOOTER_FONT_SIZE}vh ${INITIAL_SETTINGS.FONT_FAMILY}`;
+const FOOTER_FONT_SIZE = 0.016* window.innerHeight;
+const FOOTER_FONT = `400 ${(FOOTER_FONT_SIZE)}px ${INITIAL_SETTINGS.FONT_FAMILY}`;
 const FOOTER_TEXT_COLOR = "#000";
 const FOOTER_BG_COLOR = "#fff";
 const FOOTER_MARGIN = 10;
@@ -234,7 +233,7 @@ function renderOverlay() {
   // 3-2. 측정
   const cm = overlayCtx.measureText(chunkText);
   const rm = overlayCtx.measureText(ratioText);
-  const th = FOOTER_FONT_SIZE * 1.0; // 텍스트 박스 높이
+  const th = FOOTER_FONT_SIZE; // 텍스트 박스 높이
 
   // 3-3. 그리기 (TextBaseline = top)
   overlayCtx.textBaseline = "top";
