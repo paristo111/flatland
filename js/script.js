@@ -817,6 +817,38 @@ function resetCursorBlink() {
   }, 530);
 }
 
+// 마우스 휠 비율조절
+window.addEventListener('wheel', (e) => {
+    // 1. 브라우저 기본 스크롤 동작 방지 (핀치 줌 포함)
+    e.preventDefault();
+
+    // 2. 휠 방향 감지
+    // deltaY < 0 : 휠을 위로 밀음 (확대) -> targetWidth 증가
+    // deltaY > 0 : 휠을 아래로 당김 (축소) -> targetWidth 감소
+    const direction = e.deltaY < 0 ? 1 : -1;
+
+    // 3. 확대/축소 감도 설정 (한 번 굴릴 때 변하는 픽셀 양)
+    // 기존 INTERACTION.SIZE_STEP(10)을 활용하거나 더 빠르게 하려면 곱하기
+    const ratioStep = INTERACTION.SIZE_STEP * 3; 
+
+    // 4. 새로운 너비 계산
+    let newWidth = targetWidth + (direction * ratioStep);
+
+    // 5. 최소/최대 크기 제한 (안전 장치)
+    // 너무 작아지면 렌더링 오류가 날 수 있으므로 최소 50px로 제한
+    if (newWidth < 50) newWidth = 50;
+    
+    // (선택사항) 최대 크기 제한이 필요하다면 아래 주석 해제
+    // if (newWidth > INITIAL_SIZE * 5) newWidth = INITIAL_SIZE * 5;
+
+    // 6. 상태 업데이트 및 렌더링 요청
+    if (targetWidth !== newWidth) {
+        targetWidth = newWidth;
+        isDirty = true;        // 픽셀 재조립(캔버스 크기 변경) 요청
+        isOverlayDirty = true; // 상단 Ratio 정보 텍스트 갱신 요청
+    }
+}, { passive: false });
+
 /**
  * ==========================================
  * 실행 및 루프
