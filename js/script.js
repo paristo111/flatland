@@ -41,8 +41,8 @@ const LINE_HEIGHT = FONT_SIZE;
 const CURSOR_WIDTH = FONT_SIZE / 3;
 
 // 오버레이 폰트 크기 기본값 60 36 18
-const HORIZONTAL_TEXT = "우리는'북쪽'과'남쪽'외에는그어떤방향으로도움직일수없습니다.";
-const VERTICAL_TEXT   = "이번엔'왼쪽'과'오른쪽'으로움직여봐.그건무슨방향이지?";
+// const HORIZONTAL_TEXT = "우리는'북쪽'과'남쪽'외에는그어떤방향으로도움직일수없습니다.";
+// const VERTICAL_TEXT   = "이번엔'왼쪽'과'오른쪽'으로움직여봐.그건무슨방향이지?";
 const DRAG_HIT_BOX = 25;
 
 // const OVERLAY_FONT_SIZE = (Math.random() * 12) + 12;
@@ -146,8 +146,9 @@ function initOverlay() {
 function cacheOverlayPatterns() {
   dpr = window.devicePixelRatio || 1;
   hPatternCtx.setTransform(1,0,0,1,0,0); hPatternCtx.font = OVERLAY_FONT;
-  const hW = Math.ceil(hPatternCtx.measureText(HORIZONTAL_TEXT).width)+2;
+  // const hW = Math.ceil(hPatternCtx.measureText(HORIZONTAL_TEXT).width)+2;
   // const hH = Math.ceil(OVERLAY_FONT_SIZE*10);
+  const hW = 200;
   const hH = DRAG_HIT_BOX*2;
   hPatternCanvas.width=hW*dpr; hPatternCanvas.height=hH*dpr;
   hPatternCtx.setTransform(1,0,0,1,0,0); hPatternCtx.scale(dpr,dpr);
@@ -161,8 +162,9 @@ function cacheOverlayPatterns() {
   hPatternCtx.fillRect(0, hH/2, hW, -OVERLAY_FONT_SIZE/2);
 
   vPatternCtx.setTransform(1,0,0,1,0,0); vPatternCtx.font=OVERLAY_FONT;
-  const vW = Math.ceil(vPatternCtx.measureText(VERTICAL_TEXT).width)+2;
+  // const vW = Math.ceil(vPatternCtx.measureText(VERTICAL_TEXT).width)+2;
   // const vH = Math.ceil(OVERLAY_FONT_SIZE*4);
+  const vW = 200;
   const vH = DRAG_HIT_BOX*2;
   vPatternCanvas.width=vW*dpr; vPatternCanvas.height=vH*dpr;
   vPatternCtx.setTransform(1,0,0,1,0,0); vPatternCtx.scale(dpr,dpr);
