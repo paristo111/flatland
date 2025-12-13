@@ -15,13 +15,13 @@ const INTERACTION = {
 const INITIAL_SETTINGS = {
   // FONT_SIZE = 24;
   CHUNK: Math.floor(Math.random() * 18) + 1,           // [설정] 초기 청크 크기 (1 = 원본)
-  RATIO_SCALE: Math.random() * 2,    // [설정] 초기 확대/축소 비율 (1.0 = 100%, 0.5 = 50%, 2.0 = 200%)
+  RATIO_SCALE: Math.random() * 1.7 + 0.3,    // [설정] 초기 확대/축소 비율 (1.0 = 100%, 0.5 = 50%, 2.0 = 200%)
   // targetWidth = INITIAL_SIZE / RATIO_SCALE 로 계산됩니다.
 
   // [추가됨] 초기 위치 설정 (단위: px)
   // null로 설정하면 기존처럼 '화면 정중앙'으로 자동 계산됩니다.
-  POS_X: Math.random() * (window.innerWidth * 0.8),         // 예: 왼쪽에서 100px
-  POS_Y: Math.random() * (window.innerHeight * 0.8),          // 예: 위쪽에서 200px
+  POS_X: Math.random() * (window.innerWidth * 0.6),         // 예: 왼쪽에서 100px
+  POS_Y: Math.random() * (window.innerHeight * 0.6),          // 예: 위쪽에서 200px
 
   // [수정됨] 폰트명 간소화 (작은따옴표 문제 방지)
   FONT_FAMILY: "'Gowun Batang', serif"
