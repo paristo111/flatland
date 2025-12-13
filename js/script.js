@@ -52,7 +52,7 @@ const OVERLAY_COLOR = "#ff0";
 const OVERLAY_BG_COLOR = "#0000";
 
 // 푸터
-const FOOTER_FONT_SIZE = 0.016* window.innerHeight;
+const FOOTER_FONT_SIZE = 16;
 const FOOTER_FONT = `400 ${(FOOTER_FONT_SIZE)}px ${INITIAL_SETTINGS.FONT_FAMILY}`;
 const FOOTER_TEXT_COLOR = "#000";
 const FOOTER_BG_COLOR = "#fff";
