@@ -316,6 +316,12 @@ function getHitRegion(x,y){
     return 'footer-center';
   }
 
+  // 좌하단 푸터 이미지 저장
+  // FOOTER_MARGIN(10)과 텍스트 길이를 고려해 너비 100px 정도로 영역 설정
+  if (x >= 0 && x <= FOOTER_MARGIN + 100 && y >= footerY) {
+      return 'footer-left';
+  }
+
   // [우선순위 2] 가로/세로 드래그 (문자열이 켜져있을 때만)
   if (showOverlayStrings) {
     if (y >= hTextY - (OVERLAY_FONT_SIZE/2) - DRAG_HIT_BOX && y <= hTextY + (OVERLAY_FONT_SIZE/2) + DRAG_HIT_BOX) return 'horizontal';
@@ -396,21 +402,21 @@ function drawTextToCanvas() {
     const hasSelection = selStart !== selEnd;
 
     // [변경] 배경 채우기 높이를 newHeight로 변경 (기존 INITIAL_SIZE에서 수정)
-    textCtx.fillStyle = 'white'; 
+    textCtx.fillStyle = '#fff0'; 
     textCtx.fillRect(0, 0, INITIAL_SIZE, newHeight);
 
     textCtx.font = FONT_STYLE; 
     textCtx.textBaseline = 'top';
 
     // 텍스트 배경(검정)
-    textCtx.fillStyle = 'black';
+    textCtx.fillStyle = '#000';
     for (let i = 0; i < renderedLines.length; i++) {
         const t = renderedLines[i].text;
         if (t) textCtx.fillRect(TEXT_PADDING_X, TEXT_PADDING_Y + i * LINE_HEIGHT, textCtx.measureText(t).width, LINE_HEIGHT);
     }
 
     // 텍스트(흰색)
-    textCtx.fillStyle = 'white';
+    textCtx.fillStyle = '#fff';
     for (let i = 0; i < renderedLines.length; i++) {
         textCtx.fillText(renderedLines[i].text, TEXT_PADDING_X, TEXT_PADDING_Y + i * LINE_HEIGHT);
     }
@@ -556,7 +562,7 @@ const handleStart = (cx, cy, target) => {
     const region = getHitRegion(cx, cy);
     const rect = canvasWrapper.getBoundingClientRect();
 
-    // [추가됨] 헤더 클릭 처리
+    // 헤더 클릭 처리
     if (region === 'header-left') {
       chunk = 1;          // 청크 크기 1로 초기화
       isDirty = true;     // 픽셀 재조립 요청
@@ -570,11 +576,17 @@ const handleStart = (cx, cy, target) => {
       return;
     }
 
-    // [추가됨] 중앙 푸터 클릭 (토글)
+    // 중앙 푸터 클릭 (토글)
     if (region === 'footer-center') {
       showOverlayStrings = !showOverlayStrings; // 상태 반전
       isOverlayDirty = true; // 화면 갱신 요청
       return;
+    }
+
+    // 좌하단 푸터 클릭 이미지 저장
+    if (region === 'footer-left') {
+        saveCanvasImage();
+        return;
     }
 
     if (region === 'horizontal') {
@@ -848,6 +860,32 @@ window.addEventListener('wheel', (e) => {
         isOverlayDirty = true; // 상단 Ratio 정보 텍스트 갱신 요청
     }
 }, { passive: false });
+
+/**
+ * [추가] 캔버스 이미지 저장 함수
+ */
+function saveCanvasImage() {
+    // 1. 현재 시간 포맷팅 (YYYYMMDD_HHmmss)
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hour = String(now.getHours()).padStart(2, '0');
+    const min = String(now.getMinutes()).padStart(2, '0');
+    const sec = String(now.getSeconds()).padStart(2, '0');
+    const timeString = `${year}${month}${day}_${hour}${min}${sec}`;
+
+    // 2. 링크 생성 및 다운로드 트리거
+    const link = document.createElement('a');
+    // 파일명 설정: flatland_20251215_123000.png
+    link.download = `flatland_${timeString}.png`;
+    // 메인 캔버스(텍스트 영역)를 PNG 데이터로 변환 (배경 투명 유지됨)
+    link.href = mainCanvas.toDataURL('image/png');
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
 
 /**
  * ==========================================
