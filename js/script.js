@@ -308,7 +308,7 @@ function getHitRegion(x,y){
   // 우상단 (Ratio Reset)
   if (x >= w - 150 && x <= w && y >= 0 && y <= 50) return 'header-right';
   
-  // [추가됨] 중앙 푸터 (토글 버튼) 감지
+  // [추가됨] 중앙 푸터 이미지 저장
   // 중앙 텍스트 너비를 대략 200px로 가정하고 넉넉히 잡음
   const centerStart = (w / 2) - 100;
   const centerEnd = (w / 2) + 100;
@@ -316,7 +316,7 @@ function getHitRegion(x,y){
     return 'footer-center';
   }
 
-  // 좌하단 푸터 이미지 저장
+  // 좌하단 푸터 오버레이 라인 토글
   // FOOTER_MARGIN(10)과 텍스트 길이를 고려해 너비 100px 정도로 영역 설정
   if (x >= 0 && x <= FOOTER_MARGIN + 100 && y >= footerY) {
       return 'footer-left';
@@ -576,16 +576,16 @@ const handleStart = (cx, cy, target) => {
       return;
     }
 
-    // 중앙 푸터 클릭 (토글)
+    // 중앙 푸터 클릭 이미지 저장
     if (region === 'footer-center') {
-      showOverlayStrings = !showOverlayStrings; // 상태 반전
-      isOverlayDirty = true; // 화면 갱신 요청
+      saveCanvasImage();
       return;
     }
 
-    // 좌하단 푸터 클릭 이미지 저장
+    // 좌하단 푸터 클릭 오버레이 라인 토글
     if (region === 'footer-left') {
-        saveCanvasImage();
+        showOverlayStrings = !showOverlayStrings; // 상태 반전
+        isOverlayDirty = true; // 화면 갱신 요청
         return;
     }
 
