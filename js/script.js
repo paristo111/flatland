@@ -859,7 +859,7 @@ window.addEventListener('wheel', (e) => {
 
     // 3. 확대/축소 감도 설정 (한 번 굴릴 때 변하는 픽셀 양)
     // 기존 INTERACTION.SIZE_STEP(10)을 활용하거나 더 빠르게 하려면 곱하기
-    const ratioStep = INTERACTION.SIZE_STEP * 1; 
+    const ratioStep = INTERACTION.SIZE_STEP * 0.1; 
 
     // 4. 새로운 너비 계산
     let newWidth = targetWidth + (direction * ratioStep);
