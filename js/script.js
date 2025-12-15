@@ -477,62 +477,79 @@ function drawTextToCanvas() {
  * ==========================================
  */
 function rebuildPixels() {
-  if (!originalData) return;
-  const pW=textCanvas.width, pH=textCanvas.height;
-  const pChunk=Math.max(1,Math.round(chunk*dpr));
-  
-  let idealW = targetWidth * dpr, newW = idealW;
-  if (pChunk > 1) {
-    const bX = Math.round(idealW / pChunk);
-    newW = Math.max(pChunk, bX * pChunk);
-  }
-  let newH = Math.ceil((pW * pH) / newW);
-  if (pChunk > 1) {
-    const bY = Math.ceil(newH / pChunk);
-    newH = Math.max(pChunk, bY * pChunk);
-  } else newH = Math.max(1, newH);
+    if (!originalData) return;
 
-  if (tempCanvas.width !== newW || tempCanvas.height !== newH) {
-    tempCanvas.width = newW; tempCanvas.height = newH;
-  }
-
-  const newImg = tempCtx.createImageData(newW, newH);
-  const src32 = new Uint32Array(originalData.data.buffer);
-  const dst32 = new Uint32Array(newImg.data.buffer);
-
-  if (pChunk === 1) {
-    const len = Math.min(src32.length, dst32.length);
-    for (let i = 0; i < len; i++) {
-      const nx = i % newW, ny = Math.floor(i / newW);
-      const dstIdx = ny * newW + nx;
-      if (dstIdx < dst32.length) {
-        const px = src32[i];
-        dst32[dstIdx] = (px === 0xFFFFFFFF) ? 0 : px;
-      }
-    }
-  } else {
-    const nCX = Math.ceil(pW / pChunk), nCY = Math.ceil(pH / pChunk);
-    const outCX = Math.floor(newW / pChunk) || 1;
-    let tBX = 0, tBY = 0;
+    const pW = textCanvas.width, pH = textCanvas.height;
     
-    for (let by = 0; by < nCY; by++) {
-      for (let bx = 0; bx < nCX; bx++) {
-        const sBX=bx*pChunk, sBY=by*pChunk, dBX=tBX*pChunk, dBY=tBY*pChunk;
-        for (let cy = 0; cy < pChunk; cy++) {
-          const sy=sBY+cy, dy=dBY+cy; if (sy>=pH||dy>=newH) continue;
-          const sRow=sy*pW, dRow=dy*newW;
-          for (let cx = 0; cx < pChunk; cx++) {
-            const sx=sBX+cx, dx=dBX+cx; if (sx>=pW||dx>=newW) continue;
-            const px=src32[sRow+sx];
-            dst32[dRow+dx]=(px===0xFFFFFFFF)?0:px;
-          }
-        }
-        tBX++; if (tBX>=outCX){tBX=0; tBY++;}
-      }
+    // [수정] 가로는 1(dpr보정)로 고정, 세로는 기존 chunk 값 사용
+    const pChunkHeight = Math.max(1, Math.round(chunk * dpr));
+    const pChunkWidth = Math.max(1, Math.round(1 * dpr)); 
+
+    let idealW = targetWidth * dpr, newW = idealW;
+
+    // [수정] 가로 크기(pChunkWidth)에 맞춰 정렬
+    const bX = Math.round(idealW / pChunkWidth);
+    newW = Math.max(pChunkWidth, bX * pChunkWidth);
+
+    let newH = Math.ceil((pW * pH) / newW);
+
+    // [수정] 세로 크기(pChunkHeight)에 맞춰 정렬
+    const bY = Math.ceil(newH / pChunkHeight);
+    newH = Math.max(pChunkHeight, bY * pChunkHeight);
+
+    if (tempCanvas.width !== newW || tempCanvas.height !== newH) {
+        tempCanvas.width = newW; tempCanvas.height = newH;
     }
-  }
-  tempCtx.putImageData(newImg, 0, 0);
-  curW = newW / dpr; curH = newH / dpr;
+
+    const newImg = tempCtx.createImageData(newW, newH);
+    const src32 = new Uint32Array(originalData.data.buffer);
+    const dst32 = new Uint32Array(newImg.data.buffer);
+
+    // [수정] 최적화 조건: 가로/세로 모두 1일 때만 단순 복사
+    if (pChunkWidth === 1 && pChunkHeight === 1) {
+        const len = Math.min(src32.length, dst32.length);
+        for (let i = 0; i < len; i++) {
+            const nx = i % newW, ny = Math.floor(i / newW);
+            const dstIdx = ny * newW + nx;
+            if (dstIdx < dst32.length) {
+                const px = src32[i];
+                dst32[dstIdx] = (px === 0xFFFFFFFF) ? 0 : px;
+            }
+        }
+    } else {
+        // [수정] 루프 변수 및 계산식을 Width/Height로 분리하여 적용
+        const nCX = Math.ceil(pW / pChunkWidth), nCY = Math.ceil(pH / pChunkHeight);
+        const outCX = Math.floor(newW / pChunkWidth) || 1;
+        let tBX = 0, tBY = 0;
+
+        for (let by = 0; by < nCY; by++) {
+            for (let bx = 0; bx < nCX; bx++) {
+                // pChunkWidth와 pChunkHeight를 구분하여 좌표 계산
+                const sBX = bx * pChunkWidth, sBY = by * pChunkHeight;
+                const dBX = tBX * pChunkWidth, dBY = tBY * pChunkHeight;
+
+                for (let cy = 0; cy < pChunkHeight; cy++) {
+                    const sy = sBY + cy, dy = dBY + cy;
+                    if (sy >= pH || dy >= newH) continue;
+                    const sRow = sy * pW, dRow = dy * newW;
+
+                    for (let cx = 0; cx < pChunkWidth; cx++) {
+                        const sx = sBX + cx, dx = dBX + cx;
+                        if (sx >= pW || dx >= newW) continue;
+
+                        const px = src32[sRow + sx];
+                        dst32[dRow + dx] = (px === 0xFFFFFFFF) ? 0 : px;
+                    }
+                }
+
+                tBX++;
+                if (tBX >= outCX) { tBX = 0; tBY++; }
+            }
+        }
+    }
+
+    tempCtx.putImageData(newImg, 0, 0);
+    curW = newW / dpr; curH = newH / dpr;
 }
 
 function rebuildAndRender() {
@@ -842,7 +859,7 @@ window.addEventListener('wheel', (e) => {
 
     // 3. 확대/축소 감도 설정 (한 번 굴릴 때 변하는 픽셀 양)
     // 기존 INTERACTION.SIZE_STEP(10)을 활용하거나 더 빠르게 하려면 곱하기
-    const ratioStep = INTERACTION.SIZE_STEP * 3; 
+    const ratioStep = INTERACTION.SIZE_STEP * 1; 
 
     // 4. 새로운 너비 계산
     let newWidth = targetWidth + (direction * ratioStep);
